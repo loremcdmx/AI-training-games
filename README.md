@@ -1,6 +1,8 @@
-# AI Arena
+# AI Training Games
 
-AI Arena is a local React/Vite playground for training neural agents against Minesweeper and several deterministic strategy games. The main screen is the product: live Minesweeper training, profile management, replay and telemetry, archived ELO checkpoints, and parallel strategy sandboxes for chess, tic-tac-toe, and Connect Four.
+AI Training Games is a local React/Vite workspace for training neural agents against Minesweeper and deterministic strategy games. The first screen is the working surface: game selection, live status, champion ELO, profile controls, replay, telemetry, archived checkpoints, and strategy sandboxes for chess, tic-tac-toe, and Connect Four.
+
+Production: https://ai-training-games.vercel.app
 
 ## Commands
 

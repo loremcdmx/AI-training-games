@@ -1242,14 +1242,46 @@ function App() {
     EXPERIENCE_CARDS.find((card) => card.id === activeExperience) ?? EXPERIENCE_CARDS[0]
   const windowCaption =
     activeExperience === 'minesweeper'
-      ? 'AI Arena | Minesweeper Neural Lab'
-      : `AI Arena | ${activeExperienceCard.title}`
+      ? 'AI Training Games | Minesweeper Neural Lab'
+      : `AI Training Games | ${activeExperienceCard.title}`
   const windowMode =
     activeExperience === 'minesweeper'
+      ? mineCalibration.running
+        ? 'calibrating'
+        : trainingActive
+          ? 'training live'
+          : 'profile ready'
+      : 'strategy lab'
+  const workspaceStatus =
+    activeExperience === 'minesweeper'
+      ? mineCalibration.running
+        ? `Calibration ${mineCalibration.current}/${mineCalibration.total}`
+        : trainingActive
+          ? `Training G${training.state.currentGeneration}/${training.state.targetGenerations}`
+          : 'Ready'
+      : 'Trainer ready'
+  const commandMetrics =
+    activeExperience === 'minesweeper'
+      ? [
+          { label: 'State', value: workspaceStatus },
+          { label: 'Champion', value: `${Math.round(activeMineMeta.currentElo)} ELO` },
+          { label: 'Live win', value: percent(liveWinRate) },
+          { label: 'Board', value: formatBoardCompact(activeProfile.board) },
+        ]
+      : [
+          { label: 'State', value: workspaceStatus },
+          { label: 'Board', value: activeExperienceCard.board },
+          { label: 'Theory', value: activeExperienceCard.theory.replace('Theory: ', '') },
+          { label: 'Loop', value: 'Self-play' },
+        ]
+  const commandActionLabel =
+    activeExperience === 'minesweeper'
       ? trainingActive
-        ? 'идёт обучение'
-        : 'профиль активен'
-      : 'стратегическая лаборатория'
+        ? 'Stop run'
+        : mineCalibration.running
+          ? 'Calibrating'
+          : 'Train profile'
+      : 'Open trainer'
 
   return (
     <div className="app-shell">
@@ -1268,16 +1300,63 @@ function App() {
             <a href="#settings">Settings</a>
             <a href="#history">History</a>
           </nav>
-          <span className="window-mode">
-            {trainingActive ? 'идёт обучение' : 'профиль активен'}
-          </span>
+          <span className="window-mode">{windowMode}</span>
         </div>
 
         <section id="game-switcher" className="experience-switchboard" data-mode={windowMode}>
-          <div className="switchboard-current">
-            <p className="eyebrow">Game tabs</p>
-            <strong>{activeExperienceCard.title}</strong>
-            <span>{activeExperienceCard.description}</span>
+          <div className="switchboard-current command-deck" aria-label="Current workspace summary">
+            <div className="command-title">
+              <span className="command-mark" aria-hidden="true">
+                AI
+              </span>
+              <div>
+                <p className="eyebrow">AI Training Games</p>
+                <strong>{activeExperienceCard.title}</strong>
+                <span>{activeExperienceCard.description}</span>
+              </div>
+            </div>
+            <div className="command-metric-grid">
+              {commandMetrics.map((metric) => (
+                <div key={metric.label} className="command-metric">
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="command-action-row">
+              <button
+                type="button"
+                className={[
+                  'command-primary',
+                  activeExperience === 'minesweeper' && trainingActive ? 'danger' : 'train-cta',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                disabled={activeExperience === 'minesweeper' && mineCalibration.running}
+                onClick={() => {
+                  if (activeExperience === 'minesweeper') {
+                    if (trainingActive) {
+                      stopTrainingLoop()
+                    } else {
+                      startTraining()
+                    }
+                    return
+                  }
+
+                  document
+                    .getElementById('live-arena')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              >
+                {commandActionLabel}
+              </button>
+              <a
+                className="command-link"
+                href={activeExperience === 'minesweeper' ? '#training-control' : '#live-arena'}
+              >
+                {activeExperience === 'minesweeper' ? 'Profile' : 'Arena'}
+              </a>
+            </div>
           </div>
           <div className="experience-card-grid" role="tablist" aria-label="Game labs">
             {EXPERIENCE_CARDS.map((card) => (
